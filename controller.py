@@ -1,25 +1,27 @@
-import sys
-from pexpect import pxssh
+import socket
+from threading import *
 
-class Controller:
-    def __init__(self):
-        self.bots = []
+serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host = ""
+port = 8000
+print (host)
+print (port)
+serversocket.bind((host, port))
 
-    def send_command(self, command):
-        for bot in self.bots:
-            self.session.sendline(command)
-            self.session.prompt()
-            return self.session.before
+class client(Thread):
+    def __init__(self, socket, address):
+        Thread.__init__(self)
+        self.sock = socket
+        self.addr = address
+        self.start()
 
-    def get_clients(self):
-        with open('bots', 'r') as bots_file:
-            self.bots.append(bots_file.readline())
+    def run(self):
+        while 1:
+            print('Client sent:', self.sock.recv(1024).decode())
+            self.sock.send(b'Oi you sent something to me')
 
-
-if __name__ == "__main__":
-    me = Controller()
-    if len(sys.argv) < 2:
-        print "Usage:", sys.argv[0], "command"
-    else:
-        me.send_command(sys.argv[1])
-
+serversocket.listen(5)
+print ('server started and listening')
+while 1:
+    clientsocket, address = serversocket.accept()
+    client(clientsocket, address)

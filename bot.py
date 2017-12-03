@@ -1,28 +1,18 @@
-from subprocess import check_output
-from pexpect import pxssh
+import socket
 
-class Bot:
-    def __init__(self, host, username, password):
-        self.host = host
-        self.username = username
-        self.password = password
-        self.session = self.ssh_connect()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+host =""
+port =8000
+s.connect((host,port))
 
-    def ssh_connect(self):
-        try:
-            controller = pxssh.pxssh()
-            controller.login(self.host, self.username, self.password)
-            return controller
-        except Exception as e:
-            print e
+def ts(str):
+   s.send('e'.encode())
+   data = ''
+   data = s.recv(1024).decode()
+   print (data)
 
-    def get_sys_info():
-        self.ip = check_output("ifconfig eth0 | sed -n '2s/[^:]*:\([^ ]*\).*/\1/p'",
-                          shell=True)
-        self.user = check_output(["echo", "$(logname)"])
-        print self.ip, self.user
+while 2:
+   r = input('enter')
+   ts(s)
 
-    def send_sys_info():
-        self.session.sendline(self.ip, self.user)
-        self.session.prompt()
-        return self.session.before
+s.close ()
